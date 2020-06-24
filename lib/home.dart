@@ -1,5 +1,8 @@
 import 'package:Crane/theme/theme.dart';
 import 'package:Crane/ui/backdrop.dart';
+import 'package:Crane/ui/eat_form.dart';
+import 'package:Crane/ui/fly_form.dart';
+import 'package:Crane/ui/sleep_form.dart';
 import 'package:flutter/material.dart';
 
 class Crane extends StatefulWidget {
@@ -14,10 +17,14 @@ class _CraneState extends State<Crane> {
       title: 'Crane',
       debugShowCheckedModeBanner: false,
       home: Backdrop(
-        frontLayer:,
-        backLayer:,
-        frontTitle:,
-        backTitle:,
+        frontLayer: Container(),
+        backLayer: <Widget>[
+          FlyForm(),
+          SleepForm(),
+          EatForm(),
+        ],
+        frontTitle: 'CRANE',
+        backTitle: 'MENU',
       ),
       initialRoute: '/',
       onGenerateRoute: _getRoute,
