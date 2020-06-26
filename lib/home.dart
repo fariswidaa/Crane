@@ -23,8 +23,8 @@ class _CraneState extends State<Crane> {
           SleepForm(),
           EatForm(),
         ],
-        frontTitle: 'CRANE',
-        backTitle: 'MENU',
+        frontTitle: Text('CRANE'),
+        backTitle: Text('MENU'),
       ),
       initialRoute: '/',
       onGenerateRoute: _getRoute,
@@ -34,6 +34,7 @@ class _CraneState extends State<Crane> {
 }
 
 Route<dynamic> _getRoute(RouteSettings settings) {
+
   if (settings.name != '/') {
     return null;
   }
@@ -43,4 +44,5 @@ Route<dynamic> _getRoute(RouteSettings settings) {
     builder: (BuildContext context) => Crane(),
     fullscreenDialog: true,
   );
+  
 }

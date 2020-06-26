@@ -5,11 +5,91 @@ import 'package:Crane/ui/border_tab_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:meta/meta.dart';
 
+class _FrontLayer extends StatelessWidget {
+  const _FrontLayer({
+    Key key,
+    this.title,
+    this.index,
+  }) : super(key: key);
+
+  final String title;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return PhysicalShape(
+      elevation: 16.0,
+      color: kCranePrimaryWhite,
+      clipper: ShapeBorderClipper(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(16.0),
+            topRight: Radius.circular(16.0),
+          ),
+        ),
+      ),
+      child: ListView(
+        padding: const EdgeInsets.all(20.0),
+        children: <Widget>[
+          Text(title,
+              style: Theme.of(context)
+                  .textTheme
+                  .subtitle
+                  .copyWith(fontSize: 12.0),),
+          SizedBox(height: 8.0),
+          ItemCards(index: index),
+        ],
+      ),
+    );
+  }
+}
+
+class ItemCards extends StatelessWidget {
+  final int index;
+
+  const ItemCards({Key key, this.index}) : super(key: key);
+
+  static List<Widget> _buildFlightCards({int listIndex}) {
+    final List<Flight> flightsFly = getFlights(Category.findTrips)..shuffle();
+    final List<Flight> flightsSleep = getFlights(Category.findTrips)..shuffle();
+    final List<Flight> flightsEat = getFlights(Category.findTrips)..shuffle();
+
+    List<Flight> flights;
+    switch (listIndex) {
+      case 0:
+        flights = flightsFly;
+        break;
+      case 1:
+        flights = flightsSleep;
+        break;
+      case 2:
+        flights = flightsEat;
+        break;
+    }
+    return List.generate(flights.length, (int index) {
+      return _DestinationCard(flight: flights[index]);
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: _buildFlightCards(listIndex: index));
+  }
+}
+
+/// Builds a Backdrop.
+///
+/// A Backdrop widget has two layers, front and back. The front layer is shown
+/// by default, and slides down to show the back layer, from which a user
+/// can make a selection. The user can also configure the titles for when the
+/// front or back layer is showing.
+
 class Backdrop extends StatefulWidget {
+
   final Widget frontLayer;
   final List<Widget> backLayer;
-  final String frontTitle;
-  final String backTitle;
+  final Widget frontTitle;
+  final Widget backTitle;
 
   const Backdrop({
     @required this.frontLayer,
@@ -32,7 +112,6 @@ class _BackdropState extends State<Backdrop> with TickerProviderStateMixin {
   List<double> _tabHeights = _midHeights;
 
   TabController _tabController;
-
   Animation<Offset> _flyLayerOffset;
   Animation<Offset> _sleepLayerOffset;
   Animation<Offset> _eatLayerOffset;
@@ -41,6 +120,7 @@ class _BackdropState extends State<Backdrop> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+
     _flyLayerOffset =
         Tween<Offset>(begin: Offset(0.0, 0.0), end: Offset(-1.05, 0.0))
             .animate(_tabController.animation);
@@ -55,6 +135,13 @@ class _BackdropState extends State<Backdrop> with TickerProviderStateMixin {
       begin: Offset(2.0, 0.0),
       end: Offset(1.0, 0.0),
     ).animate(_tabController.animation);
+    
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _handleTabs(int tabIndex) {
@@ -65,12 +152,6 @@ class _BackdropState extends State<Backdrop> with TickerProviderStateMixin {
     } else {
       _tabController.animateTo(tabIndex, duration: Duration(milliseconds: 300));
     }
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
   }
 
   @override
@@ -168,9 +249,7 @@ class _BackLayerState extends State<BackLayer> {
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
       child: widget.backLayers[widget.tabController.index],
-      duration: Duration(
-        milliseconds: 300,
-      ),
+      duration: Duration(milliseconds: 300),
     );
   }
 }
@@ -195,41 +274,43 @@ class _CraneAppBarState extends State<CraneAppBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            padding: EdgeInsets.all(0.0),
             child: IconButton(
-                icon: Image.asset(
-                  'assets/menu_logo.png',
-                  fit: BoxFit.cover,
-                ),
-                onPressed: () {}),
+              iconSize: 72.0,
+              padding: EdgeInsets.all(0.0),
+              icon: Image.asset(
+                'assets/menu_logo.png',
+                fit: BoxFit.cover,
+              ),
+              onPressed: () {},
+            ),
           ),
           Container(
+            width: MediaQuery.of(context).size.width - 72.0,
             child: TabBar(
-              indicator: BorderTabIndicator(indicatorHeight: 32.0),
+              indicator: BorderTabIndicator(indicatorHeight:32.0),
               controller: widget.tabController,
               labelPadding: EdgeInsets.all(0.0),
               tabs: <Widget>[
                 _NavigationTab(
                   title: 'FLY',
-                  callback: () => widget.tabHandler(0),
+                  callBack: () => widget.tabHandler(0),
                   tabController: widget.tabController,
                   index: 0,
                 ),
                 _NavigationTab(
                   title: 'SLEEP',
-                  callback: () => widget.tabHandler(1),
+                  callBack: () => widget.tabHandler(1),
                   tabController: widget.tabController,
                   index: 1,
                 ),
                 _NavigationTab(
                   title: 'EAT',
-                  callback: () => widget.tabHandler(2),
+                  callBack: () => widget.tabHandler(2),
                   tabController: widget.tabController,
                   index: 2,
                 ),
               ],
             ),
-            width: MediaQuery.of(context).size.width - 72.0,
           ),
         ],
       ),
@@ -239,12 +320,12 @@ class _CraneAppBarState extends State<CraneAppBar> {
 
 class _NavigationTab extends StatefulWidget {
   final String title;
-  final Function callback;
+  final Function callBack;
   final TabController tabController;
   final int index;
 
   const _NavigationTab(
-      {Key key, this.title, this.callback, this.tabController, this.index})
+      {Key key, this.title, this.callBack, this.tabController, this.index})
       : super(key: key);
 
   @override
@@ -270,7 +351,6 @@ class _NavigationTabState extends State<_NavigationTab> {
       child: FlatButton(
         splashColor: Colors.transparent,
         highlightColor: Colors.transparent,
-        onPressed: () => widget.callback,
         child: Text(
           widget.title,
           style: Theme.of(context).textTheme.button.copyWith(
@@ -279,91 +359,21 @@ class _NavigationTabState extends State<_NavigationTab> {
                     : kCranePrimaryWhite.withOpacity(.6),
               ),
         ),
+        onPressed: widget.callBack,
       ),
     );
   }
 }
 
-class _FrontLayer extends StatelessWidget {
-  final String title;
-  final int index;
+class _DestinationCard extends StatelessWidget {
 
-  const _FrontLayer({Key key, this.title, this.index})
-      : assert(title != null),
-        super(key: key);
+  _DestinationCard({this.flight}) : assert(flight != null);
 
-  @override
-  Widget build(BuildContext context) {
-    return PhysicalShape(
-      color: kCranePrimaryWhite,
-      clipper: ShapeBorderClipper(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16.0),
-            topRight: Radius.circular(16.0),
-          ),
-        ),
-      ),
-      child: ListView(
-        padding: EdgeInsets.all(20.0),
-        children: <Widget>[
-          Text(
-            title,
-            style:
-                Theme.of(context).textTheme.subtitle2.copyWith(fontSize: 12.0),
-          ),
-          SizedBox(height: 8.0),
-          ItemCards(index: index),
-        ],
-      ),
-    );
-  }
-}
-
-class ItemCards extends StatelessWidget {
-  final int index;
-  const ItemCards({this.index});
-
-  static List<Widget> _buildFlightCards({int index}) {
-    final List<Flight> flightsFly = getFlights(Category.findTrips)..shuffle();
-    final List<Flight> flightsSleep = getFlights(Category.findTrips)..shuffle();
-    final List<Flight> flightsEat = getFlights(Category.findTrips)..shuffle();
-
-    List<Flight> flights;
-
-    switch (index) {
-      case 0:
-        flights = flightsFly;
-        break;
-      case 1:
-        flights = flightsSleep;
-        break;
-      case 2:
-        flights = flightsEat;
-        break;
-    }
-
-    return List.generate(
-            flights.length, (index) => _Destinationcard(flight: flights[index]))
-        .toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: _buildFlightCards(index: index),
-    );
-  }
-}
-
-class _Destinationcard extends StatelessWidget {
   final Flight flight;
 
-  const _Destinationcard({
-    this.flight,
-  }) : assert(flight != null);
   @override
   Widget build(BuildContext context) {
+  
     final imageWidget = Image.asset(
       flight.assetName,
       fit: BoxFit.cover,
@@ -386,18 +396,16 @@ class _Destinationcard extends StatelessWidget {
             flight.destination,
             style: Theme.of(context)
                 .textTheme
-                .subtitle1
+                .subhead
                 .copyWith(color: Colors.black),
           ),
           subtitle: Text(
             flight.layover ? 'Layover' : 'Nonstop',
             style:
-                Theme.of(context).textTheme.subtitle2.copyWith(fontSize: 12.0),
+                Theme.of(context).textTheme.subtitle.copyWith(fontSize: 12.0),
           ),
         ),
-        SizedBox(
-          child: Divider(indent: 4.0),
-        ),
+        SizedBox(child: Divider(indent: 4.0)),
       ],
     );
   }
